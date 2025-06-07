@@ -8,11 +8,10 @@ import AnalysisView from '@/views/AnalysisView.vue'
 const routes = [
   { path: '/login', name: 'login', component: LoginView, meta: { title: 'ログイン' } },
   { path: '/home', name: 'home', component: HomeView, meta: { title: 'ホーム' } },
-  { path: '/training', name: 'training', component: TrainingView, meta: { title: 'トレーニング記録' } },
-  { path: '/history', name: 'history', component: HistoryView, meta: { title: '履歴一覧' } },
+  { path: '/training', name: 'training', component: TrainingView, meta: { title: 'トレーニング 記録' } },
+  { path: '/history', name: 'history', component: HistoryView, meta: { title: '履歴' } },
   { path: '/analysis', name: 'analysis', component: AnalysisView, meta: { title: '分析' } }
 ]
-
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

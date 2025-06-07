@@ -2,17 +2,27 @@
   <aside class="sidebar">
     <nav>
       <ul>
-        <li><router-link to="/home">ホーム</router-link></li>
-        <li><router-link to="/training">トレーニング記録</router-link></li>
-        <li><router-link to="/history">履歴一覧</router-link></li>
-        <li><router-link to="/analysis">分析</router-link></li>
+        <li v-for="route in menuRoutes" :key="route.path">
+          <router-link :to="route.path">{{ route.meta.title }}</router-link>
+        </li>
       </ul>
     </nav>
   </aside>
 </template>
 
+
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+
+// ルーターから全ルート取得
+const router = useRouter()
+
+// サイドバーに出したいルートを抽出
+const menuRoutes = router.getRoutes().filter(route => {
+  return route.meta?.title && route.path !== '/login'
+})
 </script>
+
 
 <style scoped>
 .sidebar {
