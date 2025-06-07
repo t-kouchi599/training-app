@@ -17,13 +17,15 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const username = ref('')
 const password = ref('')
 
 function handleLogin() {
-  console.log('ログイン試行:', username.value, password.value)
-  alert('ログインボタン押されました（仮実装）')
+  router.push('/home')
 }
 </script>
 
