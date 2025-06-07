@@ -8,7 +8,14 @@
       </div>
       <div>
         <label>種目:</label>
-        <input type="text" v-model="exercise" required />
+        <select v-model="exercise" required>
+          <option disabled value="">選択してください</option>
+          <option v-for="ex in store.exercises" :key="ex" :value="ex">{{ ex }}</option>
+        </select>
+        <div class="add-exercise">
+          <input type="text" v-model="newExercise" placeholder="新しい種目を追加" />
+          <button type="button" @click="addNewExercise">追加</button>
+        </div>
       </div>
       <div>
         <label>重量 (kg):</label>
@@ -23,6 +30,7 @@
   </div>
 </template>
 
+
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useTrainingStore } from '@/stores/training'
@@ -33,6 +41,17 @@ const date = ref(new Date().toISOString().substr(0, 10))
 const exercise = ref('')
 const weight = ref(0)
 const reps = ref(0)
+const newExercise = ref('')
+
+function addNewExercise() {
+  if (newExercise.value.trim() === '') {
+    alert('種目名を入力してください')
+    return
+  }
+  store.addExercise(newExercise.value)
+  exercise.value = newExercise.value
+  newExercise.value = ''
+}
 
 function saveTraining() {
   store.addRecord({
@@ -59,4 +78,8 @@ function saveTraining() {
 .training-container div {
   margin-bottom: 15px;
 }
+.add-exercise {
+  margin-top: 10px;
+}
 </style>
+

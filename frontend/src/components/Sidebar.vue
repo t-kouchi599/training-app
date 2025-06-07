@@ -5,6 +5,7 @@
         <li><router-link to="/home">ホーム</router-link></li>
         <li><router-link to="/training">トレーニング記録</router-link></li>
         <li><router-link to="/history">履歴一覧</router-link></li>
+        <li><router-link to="/analysis">分析</router-link></li>
       </ul>
     </nav>
   </aside>
