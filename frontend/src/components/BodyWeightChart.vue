@@ -14,12 +14,24 @@ import {
   CategoryScale,
   LinearScale,
   Tooltip,
-  Legend
+  Legend,
+  TimeScale
 } from 'chart.js'
 import { Line } from 'vue-chartjs'
+import 'chartjs-adapter-date-fns'
+import type { TooltipItem, ChartOptions } from 'chart.js'
+import { format } from 'date-fns'
 
 // Chart.js コンポーネント登録
-ChartJS.register(LineElement, PointElement, CategoryScale, LinearScale, Tooltip, Legend)
+ChartJS.register(
+  LineElement,
+  PointElement,
+  TimeScale,
+  LinearScale,
+  CategoryScale,
+  Tooltip,
+  Legend
+)
 
 // Props（親コンポーネントから受け取る）
 const props = defineProps<{
@@ -59,7 +71,7 @@ const chartData = computed(() => {
 })
 
 // グラフオプション
-const chartOptions = computed(() => {
+const chartOptions = computed<ChartOptions<'line'>>(() => {
   const weights = filteredHistory.value.map(item => item.weight)
 
   if (weights.length === 0) {
@@ -67,7 +79,20 @@ const chartOptions = computed(() => {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: true }
+        legend: { display: true },
+        tooltip: {
+          callbacks: {
+            title: (tooltipItems: TooltipItem<'line'>[]) => {
+              const rawDate = tooltipItems[0].label
+              const formatted = format(new Date(rawDate), 'yyyy年MM月dd日')
+              return `日付: ${formatted}`
+            },
+            label: (tooltipItem: TooltipItem<'line'>) => {
+              const weight = tooltipItem.formattedValue
+              return `体重: ${weight} kg`
+            }
+          }
+        }
       },
       scales: {
         y: {
@@ -83,14 +108,50 @@ const chartOptions = computed(() => {
   return {
     responsive: true,
     maintainAspectRatio: false,
+    interaction: {
+      mode: 'nearest' as const,
+      intersect: false
+    },
     plugins: {
-      legend: { display: true }
+      legend: { display: true },
+        tooltip: {
+          callbacks: {
+            title: (tooltipItems: TooltipItem<'line'>[]) => {
+              const x = tooltipItems[0].parsed.x
+              if (!x) return ''
+              const date = typeof x === 'number' ? new Date(x) : x
+              const formatted = format(date, 'yyyy年MM月dd日')
+              return `日付: ${formatted}`
+            },
+            label: (tooltipItem: TooltipItem<'line'>) => {
+              const weight = tooltipItem.formattedValue
+              return `体重: ${weight} kg`
+            }
+          }
+        }
     },
     scales: {
+      x: {
+        type: 'time' as const,
+        time: {
+          unit: 'day' as const,
+          displayFormats: {
+            day: 'yyyy-MM-dd'
+          }
+        },
+        title: {
+          display: true,
+          text: '年月日'
+        }
+      },
       y: {
         min: Math.floor(minWeight - 10),
         max: Math.ceil(maxWeight + 10),
-        beginAtZero: false
+        beginAtZero: false,
+        title: {
+          display: true,
+          text: '体重 (kg)'
+        }
       }
     }
   }

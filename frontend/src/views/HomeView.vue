@@ -11,7 +11,7 @@
       <button @click="adjustWeight(-0.1)">ー</button>
       <button @click="adjustWeight(0.1)">＋</button>
       <button style="width: 60px;" @click="saveWeight">保存</button>
-      <button style="width: 60px;" >削除</button>
+      <button style="width: 60px;" @click="deleteWeight">削除</button>
     </div>
 
     <!-- 追加：期間フィルタ -->
@@ -30,7 +30,7 @@
 
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useTrainingStore } from '@/stores/training'
 import BodyWeightChart from '@/components/BodyWeightChart.vue'
 import { getTodayString } from '@/utils/date'
@@ -41,6 +41,49 @@ const today = new Date()
 const oneMonthAgo = new Date()
 
 oneMonthAgo.setMonth(today.getMonth() - 1)
+
+onMounted(() => {
+  fetchInitialData()
+})
+
+async function fetchInitialData() {
+  const res = await fetch(`http://localhost:3000/api/body-weights?start=${startDate.value}&end=${endDate.value}`)
+
+  if (res.ok) {
+    const data = await res.json()
+    store.bodyWeightHistory = data
+
+    // 最新体重をセット
+    if (data.length > 0) {
+      const sorted = [...data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      inputWeight.value = parseFloat(sorted[0].weight)
+    } else {
+      inputWeight.value = 70.0
+    }
+
+  } else {
+    console.error('データ取得に失敗しました')
+  }
+}
+
+async function deleteWeight() {
+  const res = await fetch(`http://localhost:3000/api/body-weights/${inputDate.value}`, {
+    method: 'DELETE'
+  })
+
+  if (res.ok) {
+    // ストアからも削除
+    const index = store.bodyWeightHistory.findIndex(entry => entry.date === inputDate.value)
+    if (index !== -1) {
+      store.bodyWeightHistory.splice(index, 1)
+    }
+
+    alert('体重を削除しました！')
+  } else {
+    alert('削除に失敗しました')
+  }
+}
+
 
 // 日付と体重の入力用
 const inputDate = ref<string>(getTodayString())
@@ -56,6 +99,7 @@ watch(startDate, (newVal) => {
     startDate.value = prevStartDate.value
   } else {
     prevStartDate.value = newVal
+    fetchInitialData()
   }
 })
 
@@ -65,13 +109,40 @@ watch(endDate, (newVal) => {
     endDate.value = prevEndDate.value
   } else {
     prevEndDate.value = newVal
+    fetchInitialData()
   }
 })
 
 // 保存処理
-function saveWeight() {
-  store.addBodyWeight(inputWeight.value)
-  alert('体重を保存しました！')
+async function saveWeight() {
+  const payload = {
+    date: inputDate.value,
+    weight: inputWeight.value
+  }
+
+  const res = await fetch('http://localhost:3000/api/body-weights', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+
+  if (res.ok) {
+    // 既に同じ日付があれば置き換え、なければ追加
+    const index = store.bodyWeightHistory.findIndex(
+      entry => entry.date === payload.date
+    )
+    if (index !== -1) {
+      store.bodyWeightHistory[index] = payload
+    } else {
+      store.bodyWeightHistory.push(payload)
+    }
+
+    fetchInitialData()
+    alert('体重を保存しました！')
+
+  } else {
+    alert('保存に失敗しました')
+  }
 }
 
 // +,-ボタン押下時の処理
@@ -84,7 +155,7 @@ function adjustWeight(amount: number) {
   inputWeight.value = updated
 }
 
-// フォーカス外れ時に正規化（小数1桁、最大999.9、.0付け）
+// 「体重」入力欄のフォーカス外れ時に正規化（小数1桁、最大999.9、.0付け）
 function normalize(event: Event) {
   const target = event.target as HTMLInputElement
   let value = target.value.trim()
@@ -117,7 +188,6 @@ function normalize(event: Event) {
     target.value = fixed.toFixed(1)
   }
 }
-
 
 </script>
 

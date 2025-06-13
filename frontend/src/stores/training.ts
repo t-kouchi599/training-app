@@ -55,6 +55,15 @@ export const useTrainingStore = defineStore('training', {
     },
     updateBodyWeight(newWeight: number) {
       this.bodyWeight = newWeight
+    },
+    async fetchBodyWeightHistory(start: string, end: string) {
+      const res = await fetch(`http://localhost:3000/api/body-weights?start=${start}&end=${end}`)
+      if (res.ok) {
+        const data = await res.json()
+        this.bodyWeightHistory = data
+      } else {
+        console.error('体重履歴取得失敗')
+      }
     }
   }
 })
