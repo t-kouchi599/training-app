@@ -19,12 +19,12 @@
 ## 🛠 技術スタック
 
 - フロントエンド: Vue 3 + Vuetify + Pinia
-- バックエンド: Node.js (Express)
+- バックエンド: Node.js (Express + TypeScript)
 - データベース: PostgreSQL
-- 認証: セッションベース認証
+- 認証: セッションベース認証（予定）
 - デプロイ:
-  - フロント: Cloudflare Pages
-  - バックエンド: Render
+  - フロント: Cloudflare Pages（予定）
+  - バックエンド: Render（予定）
 
 ---
 
